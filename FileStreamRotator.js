@@ -14,6 +14,7 @@ var fs = require('fs');
 var path = require('path');
 var moment = require('moment');
 var crypto = require('crypto');
+var util = require('util');
 
 var EventEmitter = require('events');
 
@@ -465,7 +466,13 @@ FileStreamRotator.getStream = function (options) {
 
                 mkDirForFile(logfile);
 
-                rotateStream = fs.createWriteStream(newLogfile, {flags: 'a'});
+                try {
+                    rotateStream = fs.createWriteStream(newLogfile, {flags: 'a'});
+                } catch (error) {
+                    console.error(`Failed to create new log file, error is ${util.inspect(error)}`);
+                    console.error(`Error stack is ${error.stack}`);
+                    throw error;
+                }
                 stream.emit('new',newLogfile);
                 stream.emit('rotate',oldFile, newLogfile);
                 BubbleEvents(rotateStream,stream);
